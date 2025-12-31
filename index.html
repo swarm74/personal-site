@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>glaive!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #06070b;
+      --panel: rgba(18,20,26,.45);
+      --panel2: rgba(10,11,16,.28);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.55);
+      --accent: #5b63ff;
+      --accent2:#7a5cff;
+      --shadow: 0 30px 90px rgba(0,0,0,.55);
+      --shadow2: 0 10px 35px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* background grid */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(1000px 500px at 70% 15%, rgba(82,120,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 20% 25%, rgba(122,92,255,.14), transparent 62%),
+        radial-gradient(900px 700px at 50% 110%, rgba(255,255,255,.05), transparent 60%),
+        linear-gradient(to bottom, rgba(255,255,255,.04), transparent 25%, transparent 75%, rgba(0,0,0,.55));
+    }
+    .bg::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        repeating-linear-gradient(to right, rgba(255,255,255,.06) 0, rgba(255,255,255,.06) 1px, transparent 1px, transparent 56px),
+        repeating-linear-gradient(to bottom, rgba(255,255,255,.06) 0, rgba(255,255,255,.06) 1px, transparent 1px, transparent 56px);
+      opacity:.18;
+      mix-blend-mode: screen;
+      filter: blur(.1px);
+    }
+
+    .wrap{
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 48px 22px 90px;
+    }
+
+    /* Top layout */
+    .hero{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 42px;
+      align-items:start;
+    }
+
+    .headline{
+      font-size: 56px;
+      line-height: 1.05;
+      letter-spacing: -1.4px;
+      margin: 0 0 14px;
+      font-weight: 800;
+    }
+    .sub{
+      margin: 0 0 22px;
+      color: var(--muted);
+      max-width: 560px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .btnrow{ display:flex; gap:12px; align-items:center; margin: 18px 0 18px; }
+    .btn{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      text-decoration:none;
+      transition:.2s ease;
+      box-shadow: var(--shadow2);
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(91,99,255,.95), rgba(122,92,255,.80));
+      color: white;
+    }
+    .btn.primary:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+
+    .pills{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top: 14px;
+    }
+    .pill{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(10,11,16,.35);
+      color: rgba(255,255,255,.70);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .stack{ display:flex; flex-direction:column; gap: 16px; }
+
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card.pad{ padding: 16px; }
+
+    /* Discord presence card */
+    .profileHead{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .user{ display:flex; align-items:center; gap: 10px; }
+    .avatar{
+      width: 42px; height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+      flex: 0 0 auto;
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .uname{ font-weight: 900; font-size: 14px; line-height: 1.1; }
+    .handle{ color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .statusPill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.70);
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+    }
+    .sDot{ width:8px; height:8px; border-radius:50%; background: rgba(255,255,255,.35); }
+
+    .row{ display:flex; gap: 8px; flex-wrap:wrap; margin-top: 10px; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .activity{
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(10,11,16,.28);
+    }
+    .activity .label{
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing:.2px;
+      color: rgba(255,255,255,.62);
+      margin-bottom: 6px;
+    }
+    .activity .text{
+      font-size: 13px;
+      color: rgba(255,255,255,.80);
+      line-height: 1.4;
+    }
+    .smallMuted{ color: rgba(255,255,255,.50); font-size: 12px; margin-top: 6px; }
+
+    /* Project boxes row */
+    .projectsRow{
+      margin-top: 34px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .projectCard{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(18,20,26,.38);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 240px;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .projectCard:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.16);
+    }
+    .projectImg{
+      height: 140px;
+      background: rgba(0,0,0,.25);
+      position:relative;
+      overflow:hidden;
+    }
+    .projectImg img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      filter: saturate(1.05) contrast(1.05);
+      transform: scale(1.01);
+    }
+    .projectBody{
+      padding: 14px 14px 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      flex: 1;
+    }
+    .projectTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .projectTitle h3{
+      margin:0;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .badge{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+    }
+    .projectDesc{
+      margin:0;
+      color: rgba(255,255,255,.60);
+      font-size: 12px;
+      line-height: 1.6;
+      min-height: 38px;
+    }
+    .projectBtn{
+      margin-top: auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(135deg, rgba(91,99,255,.95), rgba(122,92,255,.80));
+      color: white;
+      text-decoration:none;
+      transition:.2s ease;
+    }
+    .projectBtn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+
+    @media (max-width: 980px){
+      .hero{ grid-template-columns: 1fr; }
+      .headline{ font-size: 44px; }
+      .projectsRow{ grid-template-columns: 1fr; }
+    }
+    .projectsLabel{
+  margin-top: 34px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: rgba(255,255,255,.70);
+}
+
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <!-- TOP: hero + discord card -->
+    <section class="hero">
+      <div>
+        <h1 class="headline">^w^<br/></h1>
+        <p class="sub">
+          weekend rockstar
+        </p>
+
+        <div class="btnrow">
+          <a class="btn primary" href="#" id="discordTop">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2 11 13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M22 2 15 22l-4-9-9-4L22 2Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            Contact on Discord
+          </a>
+        </div>
+
+        <div class="pills">
+          <span class="pill">C</span>
+          <span class="pill">C++</span>
+          <span class="pill">Python</span>
+          <span class="pill">HTML</span>
+          <span class="pill">CSS</span>
+          <span class="pill">JavaScript</span>
+        </div>
+      </div>
+
+      <div class="stack">
+        <!-- ONLY discord card here now (no big image above it) -->
+        <div class="card pad">
+          <div class="profileHead">
+            <div class="user">
+              <div class="avatar"><img id="avatarImg" alt="" /></div>
+              <div>
+                <div class="uname" id="displayName">Loading…</div>
+                <div class="handle" id="tagLine">@discord</div>
+              </div>
+            </div>
+
+            <div class="statusPill" id="statusPill">
+              <span class="sDot" id="statusDot"></span>
+              <span id="statusText">Connecting</span>
+            </div>
+          </div>
+
+          <div class="row" id="platformRow"></div>
+
+          <div class="activity" id="activityBox" style="display:none;">
+            <div class="label" id="activityLabel">Activity</div>
+            <div class="text" id="activityText"></div>
+            <div class="smallMuted" id="activityMeta"></div>
+          </div>
+
+          <div class="smallMuted" id="fallbackText">Fetching status via Lanyard…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM: 3 project boxes (P1 / P2 / P3) -->
+<!-- BOTTOM: 3 project boxes (P1 / P2 / P3) -->
+<div class="projectsLabel">Current Projects:</div>
+<section class="projectsRow" id="projectsRow">
+  <!-- injected by JS -->
+</section>
+
+  <script>
+    /** =========================
+     *  CONFIG
+     *  ========================= */
+    const YOUR_DISCORD_ID = "1182402282466332724";
+    const DISCORD_CONTACT_LINK = "https://discord.gg/vivianware"; // your main contact link
+
+    // Projects (3 boxes)
+    const projects = [
+      {
+        label: ":)",
+        name: "Creel Services",
+        desc: "Cheapest Stacked Game Accounts.",
+        image: "https://cdn.discordapp.com/attachments/1360277331251433593/1456049302068789312/9c0de7fc-6835-4e60-ba73-73f2164dbfff.png?ex=6956f315&is=6955a195&hm=9726d3b3fd19fc443df6b15916c6005b82384e4c234d24f23781489d81911e77&",
+        discord: "https://discord.gg/vivianware" // project discord link
+      },
+      {
+        label: ":)",
+        name: "Creel Optimizations",
+        desc: "Fastest And Cheapest Way to Get The Best FPS in Your Favorite Game.",
+        image: "https://cdn.discordapp.com/attachments/1360277331251433593/1456049302068789312/9c0de7fc-6835-4e60-ba73-73f2164dbfff.png?ex=6956f315&is=6955a195&hm=9726d3b3fd19fc443df6b15916c6005b82384e4c234d24f23781489d81911e77&",
+        discord: "https://discord.gg/betterfps"
+      },
+      {
+        label: ":)",
+        name: "Pulse Boost",
+        desc: "Cheapest Discord Boost / Nitro",
+        image: "https://cdn.discordapp.com/attachments/1449147687143211281/1456042199413166233/IMG_0911.png?ex=6956ec78&is=69559af8&hm=62fd1f1734482803138a45f94c8ca8788479cbefaa40a86f2caeb55adf638553&",
+        discord: "https://discord.gg/pulseboosts"
+      }
+    ];
+
+    /** =========================
+     *  Button link
+     *  ========================= */
+    document.getElementById("discordTop").href = DISCORD_CONTACT_LINK;
+
+    /** =========================
+     *  Render projects
+     *  ========================= */
+    const row = document.getElementById("projectsRow");
+
+    row.innerHTML = projects.map(p => `
+      <div class="projectCard">
+        <div class="projectImg">
+          <img src="${p.image}" alt="${p.name}">
+        </div>
+        <div class="projectBody">
+          <div class="projectTitle">
+            <h3>${p.name}</h3>
+            <span class="badge">${p.label}</span>
+          </div>
+          <p class="projectDesc">${p.desc}</p>
+          <a class="projectBtn" href="${p.discord}" target="_blank" rel="noopener noreferrer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M7 16c1.3 1 2.9 1.5 5 1.5S15.7 17 17 16c1.5-2.2 2-4.4 2-7.2-1-1-2.1-1.6-3.3-2 0 0-.4.7-.5 1-1.2-.3-2.5-.5-3.7-.5s-2.5.2-3.7.5c-.1-.3-.5-1-.5-1-1.2.4-2.3 1-3.3 2 0 2.8.5 5 2 7.2Z" stroke="white" stroke-width="2" opacity=".95"/>
+              <path d="M9.5 13.2h0M14.5 13.2h0" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            Discord
+          </a>
+        </div>
+      </div>
+    `).join("");
+
+    /** =========================
+     *  Lanyard (Discord presence)
+     *  Realtime via WebSocket + REST fallback
+     *  ========================= */
+    const elName = document.getElementById("displayName");
+    const elTag  = document.getElementById("tagLine");
+    const avatar = document.getElementById("avatarImg");
+    const statusText = document.getElementById("statusText");
+    const statusDot  = document.getElementById("statusDot");
+    const platformRow = document.getElementById("platformRow");
+    const activityBox = document.getElementById("activityBox");
+    const activityLabel = document.getElementById("activityLabel");
+    const activityText  = document.getElementById("activityText");
+    const activityMeta  = document.getElementById("activityMeta");
+    const fallbackText  = document.getElementById("fallbackText");
+
+    function statusColor(status){
+      switch(status){
+        case "online": return "rgba(69, 232, 142, .95)";
+        case "idle": return "rgba(255, 210, 77, .95)";
+        case "dnd": return "rgba(255, 92, 92, .95)";
+        default: return "rgba(255,255,255,.35)";
+      }
+    }
+    function niceStatus(status){
+      if(status === "dnd") return "Do Not Disturb";
+      if(status === "idle") return "Idle";
+      if(status === "online") return "Online";
+      return "Offline";
+    }
+
+    function setPlatforms(flags){
+      platformRow.innerHTML = "";
+      const platforms = [];
+      if (flags?.desktop) platforms.push("Desktop");
+      if (flags?.web) platforms.push("Web");
+      if (flags?.mobile) platforms.push("Mobile");
+
+      if (!platforms.length){
+        const c = document.createElement("span");
+        c.className = "chip";
+        c.textContent = "No client info";
+        platformRow.appendChild(c);
+        return;
+      }
+
+      platforms.forEach(p => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = p;
+        platformRow.appendChild(chip);
+      });
+    }
+
+    function pickActivity(d){
+      const acts = d?.activities || [];
+      if (!acts.length) return null;
+      const nonCustom = acts.find(a => a.type !== 4);
+      return nonCustom || acts[0];
+    }
+
+    function renderPresence(d){
+      const discord_user = d.discord_user || {};
+
+      const display = discord_user.display_name || discord_user.username || "Unknown";
+      const username = discord_user.username || "user";
+      const discrim = (discord_user.discriminator && discord_user.discriminator !== "0") ? `#${discord_user.discriminator}` : "";
+
+      elName.textContent = display;
+      elTag.textContent = `@${username}${discrim}`;
+
+      const avatarHash = discord_user.avatar;
+      const userId = discord_user.id || YOUR_DISCORD_ID;
+      const ext = (avatarHash && avatarHash.startsWith("a_")) ? "gif" : "png";
+      avatar.src = avatarHash
+        ? `https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.${ext}?size=128`
+        : `https://cdn.discordapp.com/embed/avatars/0.png`;
+
+      const status = d.discord_status || "offline";
+      statusText.textContent = niceStatus(status);
+      statusDot.style.background = statusColor(status);
+
+      setPlatforms({
+        desktop: !!d.active_on_discord_desktop,
+        web: !!d.active_on_discord_web,
+        mobile: !!d.active_on_discord_mobile
+      });
+
+      const act = pickActivity(d);
+
+      if (d.listening_to_spotify && d.spotify){
+        activityBox.style.display = "block";
+        fallbackText.style.display = "none";
+        activityLabel.textContent = "Listening to Spotify";
+        activityText.textContent = `${d.spotify.song} — ${d.spotify.artist}`;
+        activityMeta.textContent = `${d.spotify.album}`;
+        return;
+      }
+
+      if (act){
+        activityBox.style.display = "block";
+        fallbackText.style.display = "none";
+        activityLabel.textContent = "Activity";
+        activityText.textContent = act.name || "Active";
+        activityMeta.textContent = [act.details, act.state].filter(Boolean).join(" • ");
+      } else {
+        activityBox.style.display = "none";
+        fallbackText.style.display = "block";
+        fallbackText.textContent = "No recent activity.";
+      }
+    }
+
+    async function fetchOnce(){
+      if (YOUR_DISCORD_ID.includes("PUT_")){
+        fallbackText.textContent = "Set YOUR_DISCORD_ID in the script to enable Lanyard.";
+        return;
+      }
+      try{
+        const res = await fetch(`https://api.lanyard.rest/v1/users/${YOUR_DISCORD_ID}`);
+        const json = await res.json();
+        if (json && json.success) renderPresence(json.data);
+        else fallbackText.textContent = "Could not load Discord status.";
+      } catch(e){
+        fallbackText.textContent = "Lanyard fetch failed.";
+      }
+    }
+
+    function connectWS(){
+      if (YOUR_DISCORD_ID.includes("PUT_")) return;
+
+      try{
+        const ws = new WebSocket("wss://api.lanyard.rest/socket");
+        ws.addEventListener("open", () => {
+          ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: YOUR_DISCORD_ID } }));
+        });
+        ws.addEventListener("message", (ev) => {
+          try{
+            const msg = JSON.parse(ev.data);
+            if (msg.t === "INIT_STATE" && msg.d) renderPresence(msg.d);
+            if (msg.t === "PRESENCE_UPDATE" && msg.d) renderPresence(msg.d);
+          } catch {}
+        });
+        ws.addEventListener("close", () => setTimeout(fetchOnce, 1500));
+      } catch {}
+    }
+
+    fetchOnce();
+    connectWS();
+  </script>
+</body>
+</html>
