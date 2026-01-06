@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>^w^</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+
+    <audio id="bg-audio" loop autoplay>
+    </audio>
+
+    <div id="preview-modal" class="modal-overlay">
+        <div class="preview-glass">
+            <div class="preview-header">
+                <span id="preview-title">Live Preview</span>
+                <div class="preview-controls">
+                    <a id="preview-newtab" href="#" target="_blank" title="Open in New Tab"><i class="fas fa-external-link-alt"></i></a>
+                    <span class="close-modal" onclick="closePreview()">&times;</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe id="site-frame" src="" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content" style="opacity: 1;">
+        
+        <div class="dashboard-panel">
+            
+            <div class="dash-sidebar">
+                <div class="sidebar-header">
+                    <img src="../assets/pfp.png" class="mini-pfp" alt="Me">
+                    <h3>^w^</h3>
+                </div>
+
+                <div class="filter-menu">
+                    <div class="filter-label">Browse</div>
+                    <button class="filter-btn active" onclick="filterProjects('all')">
+                        <i class="fas fa-th-large"></i> All Projects
+                    </button>
+                    <button class="filter-btn" onclick="filterProjects('website')">
+                        <i class="fas fa-globe"></i> Websites
+                    </button>
+                    <button class="filter-btn" onclick="filterProjects('bot')">
+                        <i class="fas fa-robot"></i> Bots
+                    </button>
+                    <button class="filter-btn" onclick="filterProjects('tool')">
+                        <i class="fas fa-tools"></i> Tools
+                    </button>
+                </div>
+
+                <div class="sidebar-footer">
+                    <a href="../index.html" class="back-home-btn"><i class="fas fa-arrow-left"></i> Return Home</a>
+                </div>
+            </div>
+
+            <div class="dash-content">
+                <div class="content-header">
+                    <h2>Selected Work</h2>
+                    <span class="project-count">3 Projects</span>
+                </div>
+
+                <div class="project-grid">
+
+                    <div class="project-card" data-category="website">
+                        <div class="p-top">
+                            <div class="p-icon web"><i class="fas fa-globe"></i></div>
+                            <span class="cat-tag">Website</span>
+                        </div>
+                        <h3>eliteservices.cc</h3>
+                        <p>responsive digital marketplace featuring a modern dark aesthetic with glassmorphism UI and an interactive particle background, utilizing vanilla JavaScript for dynamic product filtering and real-time API integrations.</p>
+                        <div class="p-actions">
+                            <button class="preview-btn" onclick="openPreview('https://eliteservices.cc', 'eliteservices.cc')">
+                                <i class="fas fa-eye"></i> Live Preview
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="project-card" data-category="bot">
+                        <div class="p-top">
+                            <div class="p-icon bot"><i class="fas fa-robot"></i></div>
+                            <span class="cat-tag">Discord Bot</span>
+                        </div>
+                        <h3>SellAuth AIO</h3>
+                        <p>automates e-commerce management for "Elite Services" by syncing real-time sales and feedback to Discord while enabling staff to manage products and process orders via secure slash commands. It streamlines operations with automated role assignment and live inventory tracking.</p>
+                        <div class="p-actions">
+                        </div>
+                    </div>
+
+                    <div class="project-card" data-category="tool">
+                        <div class="p-top">
+                            <div class="p-icon tool"><i class="fas fa-terminal"></i></div>
+                            <span class="cat-tag">Discord Server Cloner</span>
+                        </div>
+                        <h3>Discord Server Cloner</h3>
+                        <p>Coming Soon.</p>
+                        <div class="p-actions">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../script.js"></script> 
+    
+    <script>
+        // Filter Logic
+        function filterProjects(category) {
+            // Update Buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Filter Cards
+            const cards = document.querySelectorAll('.project-card');
+            let count = 0;
+
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex';
+                    count++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update Count Text
+            document.querySelector('.project-count').textContent = `${count} Projects`;
+        }
+
+        // Live Preview Logic
+        const modal = document.getElementById('preview-modal');
+        const iframe = document.getElementById('site-frame');
+        const title = document.getElementById('preview-title');
+        const newTab = document.getElementById('preview-newtab');
+
+        function openPreview(url, projectName) {
+            modal.style.display = 'flex';
+            iframe.src = url;
+            title.textContent = "Previewing: " + projectName;
+            newTab.href = url;
+        }
+
+        function closePreview() {
+            modal.style.display = 'none';
+            iframe.src = ''; // Stop loading to save memory
+        }
+
+        // Close modal if clicking outside glass
+        window.onclick = function(e) {
+            if (e.target == modal) closePreview();
+        }
+    </script>
+</body>
+</html>
