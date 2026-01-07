@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>angel</title>
+    <title>i dont really feel it anymore</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=gg+sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,109 +15,35 @@
     </video>
     <div class="vignette"></div>
 
-    <audio id="bg-audio" loop>
-        <source src="./assets/music.mp3" type="audio/mp3">
-    </audio>
-
     <div id="enter-screen">
         <div class="enter-text">click ^o^</div>
     </div>
 
-    <div id="music-modal" class="modal-overlay">
-        <div class="modal-glass">
-            <span class="close-modal">&times;</span>
-            
-            <h2 class="modal-title">Weekly Rotation</h2>
-            
-            <div class="stat-section">
-                <div class="stat-label">Now Playing</div>
-                <div class="track-card" id="now-playing-card">
-                    <img id="np-img" src="" alt="Art">
-                    <div class="track-info">
-                        <span id="np-name">Loading...</span>
-                        <span id="np-artist">Loading...</span>
-                    </div>
-                    <div class="bars-animation" id="np-bars">
-                        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-section">
-                <div class="stat-label">Top Artist</div>
-                <div class="top-artist-card">
-                    <img id="top-artist-img" src="" alt="">
-                    <div class="artist-info">
-                        <span id="top-artist-name">Loading...</span>
-                        <span id="top-artist-plays">0 plays</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-section">
-                <div class="stat-label">Top Albums</div>
-                <div class="album-grid" id="album-grid">
-                    </div>
-            </div>
-        </div>
-    </div>
-
     <main id="main-content">
-        <div class="glass-panel">
+        <div class="center-container">
             
-            <div class="lastfm-corner" onclick="openMusicStats()">
-                <span class="music-btn-text">My Music :p</span>
-            </div>
-
-            <div class="pfp-wrap">
-                <img src="./assets/pfp.png" alt="Profile" class="pfp">
-            </div>
-
-            <h1 class="username">^w^<span class=""><i class=""></i></span></h1>
+            <h1 class="main-title">^w^</h1>
             
-            <div class="bio-terminal">
-                <span id="typewriter"></span><span class="cursor">_</span>
-            </div>
+            <p class="subtitle">20(03)</p>
 
-            <div class="social-grid">
-                <a href="https://instagram.com/xdhaha_a" target="_blank" class="social-btn instagram"><i class="fab fa-instagram"></i></a>
+            <div class="minimal-socials">
                 
-                <a href="https://discord.gg/eliteservices" target="_blank" class="social-btn github"><i class="fab fa-discord"></i></a>
-                
-                <a href="./portfolio/portfolio.html" class="social-btn portfolio"><i class="fas fa-folder-open"></i></a>
-            </div>
+                <a href="https://open.spotify.com/user/YOUR_USER_ID" target="_blank" class="icon-wrap spotify">
+                    <i class="fab fa-spotify"></i> 
+                </a>
 
-            <div class="discord-replica-container">
-                <div class="discord-header">
-                    <span class="discord-label">stalk me lol..</span>
-                </div>
-                <div class="discord-card-inner" id="discord-card">
-                    <div class="dc-avatar-wrapper">
-                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="dc-avatar">
-                        <div class="dc-status-indicator"></div>
-                    </div>
-                    <div class="dc-info">
-                        <div class="dc-name-row">
-                            <span class="dc-username">Loading...</span>
-                            <div class="platform-icons">
-                                <i class="fas fa-mobile-alt platform-icon mobile" id="icon-mobile"></i>
-                                <i class="fas fa-desktop platform-icon desktop" id="icon-desktop"></i>
-                                <i class="fas fa-globe platform-icon web" id="icon-web"></i>
-                            </div>
-                        </div>
-                        <span class="dc-custom-status">Fetching...</span>
-                        <div class="dc-rich-presence" id="rich-presence">
-                            <div class="rp-title">PLAYING A GAME</div>
-                            <div class="rp-details">
-                                <img id="rp-image" src="" alt="">
-                                <div class="rp-text">
-                                    <span id="rp-name"></span>
-                                    <span id="rp-state"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <a href="https://x.com/x_xmrrrp" target="_blank" class="icon-wrap x">
+                    <i class="fab fa-twitter"></i> 
+                </a>
+
+                <a href="https://instagram.com/xdhaha_a" target="_blank" class="icon-wrap instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+
+                <a href="https://discord.gg/eliteservices" target="_blank" class="icon-wrap discord">
+                    <i class="fab fa-discord"></i>
+                </a>
+
             </div>
 
         </div>
@@ -125,4 +51,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
