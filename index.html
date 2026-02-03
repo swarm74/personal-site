@@ -3,53 +3,572 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>i dont really feel it anymore</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: #030303;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #particles-js {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+        }
+
+        /* --- LAYOUT --- */
+        .wrapper {
+            display: flex;
+            width: 1000px;
+            height: 650px;
+            gap: 50px;
+            padding: 20px;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            padding-top: 20px;
+        }
+
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .static-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #222;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .identity {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .identity h1 { 
+            font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+        }
+        .identity p { 
+            font-size: 13px; color: #666; font-weight: 500; margin-top: 4px; 
+        }
+
+        /* NAV MENU */
+        .nav { display: flex; flex-direction: column; gap: 8px; }
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            color: #777;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-btn.active { background: #111; color: #fff; border: 1px solid #222; }
+        .nav-btn i { width: 20px; text-align: center; }
+
+        /* DROPDOWN STYLES */
+        .dropdown-container {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 5px;
+            margin-left: 20px;
+            margin-top: 5px;
+            padding-left: 10px;
+            border-left: 1px solid #222;
+        }
+        
+        .sub-item {
+            font-size: 13px;
+            color: #666;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .sub-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+        .sub-item.active { color: #fff; background: rgba(255,255,255,0.05); }
+
+        .caret { margin-left: auto; font-size: 10px; transition: 0.3s; }
+        .nav-btn.open .caret { transform: rotate(180deg); }
+
+        /* --- CONTENT AREA --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .main-content::-webkit-scrollbar { display: none; }
+
+        /* HERO ACTIVITY */
+        .hero-activity {
+            background: linear-gradient(145deg, #0f0f0f, #0a0a0a);
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            min-height: 160px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .hero-glow {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.03), transparent 70%);
+            z-index: 0; pointer-events: none;
+        }
+
+        .activity-art {
+            width: 100px; height: 100px; border-radius: 12px; object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 1; background: #111;
+        }
+
+        .activity-details { z-index: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; }
+        
+        .status-badge {
+            display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; border: 1px solid; padding: 4px 8px; border-radius: 4px; width: fit-content;
+        }
+        .badge-online { color: #3ba55c; border-color: rgba(59, 165, 92, 0.3); }
+        .badge-idle { color: #faa61a; border-color: rgba(250, 166, 26, 0.3); }
+        .badge-dnd { color: #ed4245; border-color: rgba(237, 66, 69, 0.3); }
+        .badge-offline { color: #747f8d; border-color: rgba(116, 127, 141, 0.3); }
+
+        .activity-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .activity-sub { font-size: 13px; color: #888; font-weight: 500; }
+
+        .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 10px; overflow: hidden; display: none; }
+        .progress-bar { height: 100%; background: #1DB954; width: 0%; transition: width 1s linear; }
+        .play-timer { font-size: 12px; color: #ccc; margin-top: 6px; font-family: 'Courier New', monospace; display: none; }
+
+        /* GRIDS & CARDS */
+        .section-title { font-size: 12px; color: #555; font-weight: 700; text-transform: uppercase; margin: 10px 0 10px 0; letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        
+        .card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.2s;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+        .card:hover { background: rgba(255,255,255,0.06); border-color: #333; transform: translateY(-2px); }
+        
+        .card-icon { color: #555; font-size: 18px; transition: 0.2s; width: 20px; text-align: center; }
+        .card:hover .card-icon { color: #fff; }
+        
+        .card-info h3 { font-size: 10px; color: #555; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; }
+        .card-info p { font-size: 13px; color: #eee; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        
+        /* NOTE CARD */
+        .note-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+        }
+        .note-date { font-size: 10px; color: #555; text-align: right; margin-top: 5px; }
+
+        /* TABS */
+        .tab-content { display: none; animation: fadeIn 0.4s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* COMING SOON PAGE */
+        .coming-soon {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #444;
+            text-align: center;
+            padding-top: 100px;
+        }
+        .coming-soon i { font-size: 40px; margin-bottom: 20px; opacity: 0.5; }
+        .coming-soon h1 { font-size: 24px; color: #fff; margin-bottom: 10px; }
+
+    </style>
 </head>
 <body>
 
-    <video autoplay muted loop id="bg-video">
-        <source src="background.mp4" type="video/mp4">
-    </video>
-    <div class="vignette"></div>
+    <div id="particles-js"></div>
 
-    <div id="enter-screen">
-        <div class="enter-text">click ^o^</div>
-    </div>
-
-    <main id="main-content">
-        <div class="center-container">
-            
-            <h1 class="main-title">^w^</h1>
-            
-            <p class="subtitle">20(03)</p>
-
-            <div class="minimal-socials">
-                
-                <a href="https://open.spotify.com/user/31u5jdkkvnk22xtz4ufto74shy4a?si=7397cab9a7f0493c" target="_blank" class="icon-wrap spotify">
-                    <i class="fab fa-spotify"></i> 
-                </a>
-
-                <a href="https://x.com/x_xmrrrp" target="_blank" class="icon-wrap x">
-                    <i class="fab fa-twitter"></i> 
-                </a>
-
-                <a href="https://instagram.com/xdhaha_a" target="_blank" class="icon-wrap instagram">
-                    <i class="fab fa-instagram"></i>
-                </a>
-
-                <a href="https://discord.gg/eliteservices" target="_blank" class="icon-wrap discord">
-                    <i class="fab fa-discord"></i>
-                </a>
-
+    <div class="wrapper">
+        
+        <aside class="sidebar">
+            <div class="profile-card">
+                <img id="sidebar-avatar" src="https://via.placeholder.com/150" class="static-avatar">
+                <div class="identity">
+                    <h1 id="sidebar-displayname">Loading...</h1>
+                    <p id="sidebar-username">@...</p>
+                </div>
             </div>
 
-        </div>
-    </main>
-    <script src="script.js"></script>
+            <nav class="nav">
+                <div class="nav-btn active" onclick="tab('home', this)">
+                    <i class="fa-solid fa-house"></i> Home
+                </div>
+                
+                <div class="nav-btn" onclick="tab('gear', this)">
+                    <i class="fa-solid fa-layer-group"></i> Gear
+                </div>
+
+                <div class="nav-btn" id="haunt-btn" onclick="toggleHaunt()">
+                    <i class="fa-solid fa-ghost"></i> hauntOS 
+                    <i class="fa-solid fa-caret-down caret"></i>
+                </div>
+                <div class="dropdown-container" id="haunt-dropdown">
+                    <div class="sub-item" onclick="tab('haunt-overview', this)">Overview</div>
+                    <div class="sub-item" onclick="tab('haunt-downloads', this)">Downloads</div>
+                    <div class="sub-item" onclick="tab('haunt-changelogs', this)">Change Logs</div>
+                </div>
+
+                <div class="nav-btn" onclick="tab('notes', this)">
+                    <i class="fa-solid fa-note-sticky"></i> Notes
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            
+            <div id="home" class="tab-content active">
+                <div class="hero-activity">
+                    <div class="hero-glow"></div>
+                    <img id="activity-img" src="https://via.placeholder.com/100/111/333?text=..." class="activity-art">
+                    
+                    <div class="activity-details">
+                        <span id="status-badge" class="status-badge badge-offline">Loading</span>
+                        <div id="activity-title" class="activity-title">Fetching...</div>
+                        <div id="activity-sub" class="activity-sub">Please wait</div>
+                        
+                        <div id="spotify-progress" class="progress-container">
+                            <div id="spotify-bar" class="progress-bar"></div>
+                        </div>
+
+                        <div id="game-timer" class="play-timer">00:00:00</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Socials</div>
+                <div class="grid">
+                    <a id="link-twitter" href="#" target="_blank" class="card">
+                        <i class="fa-brands fa-twitter card-icon"></i>
+                        <div class="card-info"><h3>Twitter</h3><p id="text-twitter">@...</p></div>
+                    </a>
+                    
+                    <a id="link-discord" href="#" class="card" onclick="copyDiscord(event)">
+                        <i class="fa-brands fa-discord card-icon"></i>
+                        <div class="card-info"><h3>Discord</h3><p id="text-discord">Copy ID</p></div>
+                    </a>
+
+                    <a id="link-steam" href="#" target="_blank" class="card">
+                        <i class="fa-brands fa-steam card-icon"></i>
+                        <div class="card-info"><h3>Steam</h3><p>Profile</p></div>
+                    </a>
+
+                    <a id="link-github" href="#" target="_blank" class="card">
+                        <i class="fa-brands fa-github card-icon"></i>
+                        <div class="card-info"><h3>GitHub</h3><p>Profile</p></div>
+                    </a>
+
+                    <a id="link-instagram" href="#" target="_blank" class="card">
+                        <i class="fa-brands fa-instagram card-icon"></i>
+                        <div class="card-info"><h3>Instagram</h3><p>xdhaha_a</p></div>
+                    </a>
+                </div>
+            </div>
+
+            <div id="gear" class="tab-content">
+                <h2 style="color:#666; font-size: 14px; text-transform: uppercase; margin-bottom: 20px;">Current Peripherals</h2>
+                <div class="grid">
+                    <div class="card"><i class="fa-solid fa-computer-mouse card-icon"></i><div class="card-info"><h3>Mouse</h3><p id="g-mouse">N/A</p></div></div>
+                    <div class="card"><i class="fa-solid fa-keyboard card-icon"></i><div class="card-info"><h3>Keyboard</h3><p id="g-kb">N/A</p></div></div>
+                    <div class="card"><i class="fa-solid fa-headphones card-icon"></i><div class="card-info"><h3>Headset</h3><p id="g-headset">N/A</p></div></div>
+                    <div class="card"><i class="fa-solid fa-desktop card-icon"></i><div class="card-info"><h3>Monitor</h3><p id="g-monitor">N/A</p></div></div>
+                    <div class="card"><i class="fa-solid fa-scroll card-icon"></i><div class="card-info"><h3>Mousepad</h3><p id="g-pad">N/A</p></div></div>
+                    <div class="card"><i class="fa-solid fa-microphone card-icon"></i><div class="card-info"><h3>Audio/Mic</h3><p id="g-audio">N/A</p></div></div>
+                </div>
+            </div>
+
+            <div id="haunt-overview" class="tab-content">
+                <div class="coming-soon">
+                    <i class="fa-solid fa-eye"></i>
+                    <h1>Overview</h1>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+
+            <div id="haunt-downloads" class="tab-content">
+                <div class="coming-soon">
+                    <i class="fa-solid fa-download"></i>
+                    <h1>Downloads</h1>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+
+            <div id="haunt-changelogs" class="tab-content">
+                <div class="coming-soon">
+                    <i class="fa-solid fa-file-code"></i>
+                    <h1>Change Logs</h1>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+
+            <div id="notes" class="tab-content">
+                <h2 style="color:#666; font-size: 14px; text-transform: uppercase; margin-bottom: 20px;">Updates & Notes</h2>
+                <div id="notes-container"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        
+        // =========================================================
+        //  USER CONFIGURATION (EDIT THIS TO CHANGE WEBSITE CONTENT)
+        // =========================================================
+        const USER_CONFIG = {
+            
+            // Your Discord Developer ID
+            discordId: "1182402282466332724", 
+
+            // Social Media Usernames / Links
+            socials: {
+                twitter: "x_xmrrrp",
+                steam: "",
+                github: "",
+                instagram: "https://instagram.com/xdhaha_a"  // Leave empty to hide button
+            },
+
+            // Your Gear List
+            gear: {
+                mouse: "OP1 8k V1",
+                kb: "Wooting 60HE",
+                headset: "HyperX Cloud 3",
+                monitor: "ZOWIE XL2566K",
+                pad: "Artisan Zero Soft",
+            },
+
+            // Your Notes List (Add as many as you want)
+            // You can manually type the date or leave it blank
+            notes: [
+                { text: "hauntOS Soon ^w^", date: "02/2/2026 at 10:02 PM" },
+            ]
+        };
+        // =========================================================
+
+
+        // --- 1. APPLY CONFIG TO HTML ---
+        function applyConfig() {
+            const s = USER_CONFIG.socials;
+            const g = USER_CONFIG.gear;
+
+            // Socials
+            updateLink('link-twitter', s.twitter, `https://twitter.com/${s.twitter}`);
+            if(s.twitter) document.getElementById('text-twitter').innerText = "@" + s.twitter;
+            
+            updateLink('link-steam', s.steam, s.steam);
+            updateLink('link-github', s.github, s.github);
+            updateLink('link-instagram', s.instagram, s.instagram);
+
+            // Gear
+            document.getElementById('g-mouse').innerText = g.mouse || "N/A";
+            document.getElementById('g-kb').innerText = g.kb || "N/A";
+            document.getElementById('g-headset').innerText = g.headset || "N/A";
+            document.getElementById('g-monitor').innerText = g.monitor || "N/A";
+            document.getElementById('g-pad').innerText = g.pad || "N/A";
+            document.getElementById('g-audio').innerText = g.audio || "N/A";
+
+            // Notes
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
+            if(USER_CONFIG.notes && USER_CONFIG.notes.length > 0) {
+                USER_CONFIG.notes.forEach(note => {
+                    const div = document.createElement('div');
+                    div.className = 'note-card';
+                    div.innerHTML = `
+                        <div class="note-text">${note.text}</div>
+                        ${note.date ? `<div class="note-date">${note.date}</div>` : ''}
+                    `;
+                    container.appendChild(div);
+                });
+            } else {
+                container.innerHTML = '<p style="color:#444">No notes found.</p>';
+            }
+        }
+
+        function updateLink(id, value, url) {
+            const el = document.getElementById(id);
+            if(value && value.trim() !== "") { el.style.display = 'flex'; el.href = url; } 
+            else { el.style.display = 'none'; }
+        }
+
+        // --- 2. NAVIGATION ---
+        function tab(id, btn) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            // Remove active class from nav buttons
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            // Remove active from sub items too
+            document.querySelectorAll('.sub-item').forEach(b => b.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(id).classList.add('active');
+
+            // Highlight button
+            if(btn) btn.classList.add('active');
+        }
+
+        function toggleHaunt() {
+            const dropdown = document.getElementById('haunt-dropdown');
+            const btn = document.getElementById('haunt-btn');
+            
+            if (dropdown.style.display === 'flex') {
+                dropdown.style.display = 'none';
+                btn.classList.remove('open');
+            } else {
+                dropdown.style.display = 'flex';
+                btn.classList.add('open');
+            }
+        }
+
+        function copyDiscord(e) {
+            e.preventDefault();
+            navigator.clipboard.writeText(document.getElementById('text-discord').innerText);
+            alert("Copied!");
+        }
+
+        // --- 3. LANYARD LOGIC ---
+        let spotifyStart = 0; let spotifyEnd = 0; let gameStart = 0; let activeMode = 'none';
+
+        async function updateStatus() {
+            try {
+                const res = await fetch(`https://api.lanyard.rest/v1/users/${USER_CONFIG.discordId}`);
+                const data = await res.json();
+                if(!data.success) return;
+                const d = data.data;
+
+                document.getElementById('sidebar-avatar').src = `https://cdn.discordapp.com/avatars/${d.discord_user.id}/${d.discord_user.avatar}.png`;
+                document.getElementById('sidebar-displayname').innerText = d.discord_user.global_name || d.discord_user.username;
+                document.getElementById('sidebar-username').innerText = "@" + d.discord_user.username;
+                document.getElementById('text-discord').innerText = d.discord_user.username;
+
+                const imgEl = document.getElementById('activity-img');
+                const badgeEl = document.getElementById('status-badge');
+                const titleEl = document.getElementById('activity-title');
+                const subEl = document.getElementById('activity-sub');
+                const progContainer = document.getElementById('spotify-progress');
+                const timerEl = document.getElementById('game-timer');
+
+                const statusMap = { 'online': {t:'Online',c:'badge-online'}, 'idle': {t:'Idle',c:'badge-idle'}, 'dnd': {t:'Do Not Disturb',c:'badge-dnd'}, 'offline': {t:'Offline',c:'badge-offline'} };
+                const s = statusMap[d.discord_status] || statusMap['offline'];
+                badgeEl.innerText = s.t; badgeEl.className = `status-badge ${s.c}`;
+
+                if(d.listening_to_spotify) {
+                    activeMode = 'spotify';
+                    imgEl.src = d.spotify.album_art_url;
+                    titleEl.innerText = d.spotify.song;
+                    subEl.innerText = "by " + d.spotify.artist;
+                    spotifyStart = d.spotify.timestamps.start; spotifyEnd = d.spotify.timestamps.end;
+                    progContainer.style.display = 'block'; timerEl.style.display = 'none';
+                } else if (d.activities.length > 0) {
+                    let act = d.activities.find(a => a.type !== 4);
+                    if(act) {
+                        activeMode = 'game';
+                        titleEl.innerText = act.name;
+                        subEl.innerText = act.details || act.state || "Playing";
+                        
+                        if(act.assets && act.assets.large_image) {
+                            let assetId = act.assets.large_image;
+                            if(assetId.startsWith("mp:")) imgEl.src = `https://media.discordapp.net/${assetId.replace("mp:", "")}`;
+                            else imgEl.src = `https://cdn.discordapp.com/app-assets/${act.application_id}/${assetId}.png`;
+                        } else { imgEl.src = `https://cdn.discordapp.com/avatars/${d.discord_user.id}/${d.discord_user.avatar}.png`; }
+                        
+                        if(act.timestamps && act.timestamps.start) { gameStart = act.timestamps.start; timerEl.style.display = 'block'; }
+                        else { timerEl.style.display = 'none'; }
+                        progContainer.style.display = 'none';
+                    } else { setDefault(d, s); }
+                } else { setDefault(d, s); }
+
+                function setDefault(d, s) {
+                    activeMode = 'none';
+                    imgEl.src = `https://cdn.discordapp.com/avatars/${d.discord_user.id}/${d.discord_user.avatar}.png`;
+                    titleEl.innerText = s.t; subEl.innerText = "Not doing anything";
+                    progContainer.style.display = 'none'; timerEl.style.display = 'none';
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        // --- INIT ---
+        particlesJS("particles-js", { "particles": { "number": { "value": 30 }, "color": { "value": "#ffffff" }, "opacity": { "value": 0.05 }, "size": { "value": 2 }, "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.05 }, "move": { "enable": true, "speed": 0.5 } } });
+        
+        applyConfig(); // Load Content
+        updateStatus(); // Load Lanyard
+        setInterval(updateStatus, 5000);
+
+        setInterval(() => {
+            const now = Date.now();
+            if(activeMode === 'spotify') {
+                const pct = Math.min(((now - spotifyStart) / (spotifyEnd - spotifyStart)) * 100, 100);
+                document.getElementById('spotify-bar').style.width = pct + "%";
+            } else if(activeMode === 'game' && gameStart > 0) {
+                const el = now - gameStart;
+                const h = Math.floor(el/3600000).toString().padStart(2,'0');
+                const m = Math.floor((el%3600000)/60000).toString().padStart(2,'0');
+                const s = Math.floor((el%60000)/1000).toString().padStart(2,'0');
+                document.getElementById('game-timer').innerText = `${h}:${m}:${s} elapsed`;
+            }
+        }, 1000);
+
+    </script>
 </body>
 </html>
-
-
