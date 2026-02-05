@@ -93,11 +93,11 @@
         const USER_CONFIG = { discordId: "1182402282466332724" };
         
         // --- PASTE YOUR JSONBIN ID HERE ---
-        const MODS_BIN_ID = "PASTE_YOUR_BIN_ID_HERE"; 
+        const MODS_BIN_ID = "698429c643b1c97be966b15c"; 
 
         async function fetchMods() {
             const container = document.getElementById('mod-container');
-            if(MODS_BIN_ID === "PASTE_YOUR_BIN_ID_HERE" || !MODS_BIN_ID) return;
+            if(MODS_BIN_ID === "698429c643b1c97be966b15c" || !MODS_BIN_ID) return;
 
             try {
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${MODS_BIN_ID}/latest`);
@@ -163,4 +163,5 @@
         fetchMods();
     </script>
 </body>
+
 </html>
