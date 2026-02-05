@@ -41,9 +41,15 @@
         .mod-card:hover { border-color: #444; transform: translateX(5px); }
         
         /* Media Container */
-        .mod-media { width: 200px; height: 100%; background: #000; border-right: 1px solid #222; position: relative; flex-shrink: 0; }
-        .mod-img, .mod-video { width: 100%; height: 100%; object-fit: cover; }
+        .mod-media { 
+            width: 200px; height: 100%; background: #000; border-right: 1px solid #222; 
+            position: relative; flex-shrink: 0; cursor: zoom-in; overflow: hidden;
+        }
+        .mod-img, .mod-video { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
         
+        /* Hover Effect for Media */
+        .mod-media:hover .mod-img, .mod-media:hover .mod-video { opacity: 0.8; transform: scale(1.05); }
+
         .mod-content { padding: 20px; display: flex; flex-direction: column; justify-content: center; width: 100%; }
         .mod-type { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .mod-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
@@ -57,10 +63,46 @@
         }
         .mod-dl-btn:hover { background: #ccc; }
 
+        /* --- LIGHTBOX (MODAL) --- */
+        #lightbox {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: none; /* Hidden by default */
+            justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        #lightbox.active { display: flex; opacity: 1; }
+        
+        /* The expanded media */
+        #lightbox-media {
+            max-width: 80%; max-height: 80%;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255,255,255,0.1);
+            border: 1px solid #333;
+            object-fit: contain;
+        }
+
+        /* Close Button */
+        .close-lightbox {
+            position: absolute; top: 30px; right: 30px;
+            color: #fff; font-size: 30px; cursor: pointer;
+            z-index: 10000; transition: 0.2s;
+        }
+        .close-lightbox:hover { color: #ccc; transform: scale(1.1); }
+
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
+    
+    <div id="lightbox" onclick="closeLightbox()">
+        <i class="fa-solid fa-xmark close-lightbox"></i>
+        <div id="lightbox-content">
+            </div>
+    </div>
+
     <div class="wrapper">
         <aside class="sidebar">
             <div class="profile-card">
@@ -90,20 +132,16 @@
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
         const USER_CONFIG = { discordId: "1182402282466332724" };
-        
-        // --- YOUR BIN ID (Hardcoded since we verified it works) ---
         const MODS_BIN_ID = "69842e50ae596e708f12918f"; 
 
         async function fetchMods() {
             const container = document.getElementById('mod-container');
 
             try {
-                // Fetch directly (Your bin is public now, so no headers needed)
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${MODS_BIN_ID}/latest`);
                 const data = await res.json();
                 
-                // This matches exactly what your console log showed:
-                // data.record.mods
+                // Matches your existing logic
                 const mods = data.record.mods || [];
                 container.innerHTML = ""; 
 
@@ -118,19 +156,29 @@
                     
                     // -- MEDIA HANDLING --
                     let mediaHTML = "";
+                    let mediaUrl = "";
+                    let isVideo = false;
+
                     if(mod.media && mod.media.length > 0) {
                         const item = mod.media[0]; // Use first item as preview
-                        if(item.is_video) {
-                            mediaHTML = `<video class="mod-video" src="${item.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`;
+                        mediaUrl = item.url;
+                        isVideo = item.is_video;
+
+                        if(isVideo) {
+                            mediaHTML = `<video class="mod-video" src="${mediaUrl}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>`;
                         } else {
-                            mediaHTML = `<img class="mod-img" src="${item.url}">`;
+                            mediaHTML = `<img class="mod-img" src="${mediaUrl}">`;
                         }
                     } else {
-                        mediaHTML = `<img class="mod-img" src="https://via.placeholder.com/200x140?text=No+Preview">`;
+                        mediaUrl = "https://via.placeholder.com/200x140?text=No+Preview";
+                        mediaHTML = `<img class="mod-img" src="${mediaUrl}">`;
                     }
 
+                    // ADDED ONCLICK EVENT TO MOD-MEDIA DIV
                     card.innerHTML = `
-                        <div class="mod-media">${mediaHTML}</div>
+                        <div class="mod-media" onclick="openLightbox('${mediaUrl}', ${isVideo})">
+                            ${mediaHTML}
+                        </div>
                         <div class="mod-content">
                             <div class="mod-type">${mod.type}</div>
                             <div class="mod-title">${mod.name}</div>
@@ -148,6 +196,37 @@
             } catch(e) { console.error(e); container.innerHTML = '<p style="color:red">Error loading mods.</p>'; }
         }
 
+        // --- LIGHTBOX FUNCTIONS ---
+        function openLightbox(url, isVideo) {
+            const box = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            
+            if(isVideo) {
+                content.innerHTML = `<video id="lightbox-media" src="${url}" controls autoplay loop></video>`;
+            } else {
+                content.innerHTML = `<img id="lightbox-media" src="${url}">`;
+            }
+
+            box.classList.add('active');
+        }
+
+        function closeLightbox() {
+            const box = document.getElementById('lightbox');
+            box.classList.remove('active');
+            
+            // Clear content after delay to stop audio
+            setTimeout(() => {
+                document.getElementById('lightbox-content').innerHTML = '';
+            }, 300);
+        }
+        
+        // Close on Escape Key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") closeLightbox();
+        });
+
+
+        // --- LANYARD LOGIC ---
         async function updateStatus() {
             try {
                 const res = await fetch(`https://api.lanyard.rest/v1/users/${USER_CONFIG.discordId}`);
@@ -166,4 +245,3 @@
     </script>
 </body>
 </html>
-
