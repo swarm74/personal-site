@@ -95,13 +95,21 @@
         // --- PASTE YOUR JSONBIN ID HERE ---
         const MODS_BIN_ID = "698429c643b1c97be966b15c"; 
 
-        async function fetchMods() {
-            const container = document.getElementById('mod-container');
-            if(MODS_BIN_ID === "698429c643b1c97be966b15c" || !MODS_BIN_ID) return;
+const BIN_API_KEY = "$2a$10$f60j9sUFUdMTAKIMgRfDq.hSueH6.2Vo9bs6EJAc8mxCEAZcc1RXG"; 
 
-            try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${MODS_BIN_ID}/latest`);
-                const data = await res.json();
+async function fetchMods() {
+    const container = document.getElementById('mod-container');
+    if(MODS_BIN_ID === "698429c643b1c97be966b15c" || !MODS_BIN_ID) return;
+
+    try {
+        // We add the 'X-Master-Key' header so it can read private bins
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${MODS_BIN_ID}/latest`, {
+            headers: {
+                'X-Master-Key': BIN_API_KEY 
+            }
+        });
+        
+        const data = await res.json();
                 const mods = data.record.mods || [];
                 container.innerHTML = ""; 
 
@@ -165,3 +173,4 @@
 </body>
 
 </html>
+
