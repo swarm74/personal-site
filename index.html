@@ -3,48 +3,633 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ggglaive</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>sickle4 // studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f8f8; --text: #121212; --muted: rgba(0,0,0,0.4); --accent: #ff3333;
+            --card: rgba(255, 255, 255, 0.75); --border: rgba(0, 0, 0, 0.08);
+            --online: #43b581; --idle: #faa61a; --dnd: #f04747; --offline: #747f8d;
+            --aura: rgba(0,0,0,0);
+        }
+
+        * { box-sizing: border-box; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        body {
+            font-family: 'Outfit', sans-serif; background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 60px 20px; display: flex; justify-content: center; min-height: 100vh;
+        }
+
+        /* ALBUM AURA BACKGROUND */
+        body::before {
+            content: ''; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100vw; height: 100vh; background: var(--aura) center/cover; filter: blur(100px);
+            z-index: -1; opacity: 0.25; pointer-events: none;
+        }
+
+        .container { display: grid; grid-template-columns: 1fr; gap: 40px; max-width: 1100px; width: 100%; }
+        @media (min-width: 900px) { .container { grid-template-columns: 400px 1fr; } }
+
+        /* FIXED HEIGHT PLAYER CARD */
+        .player-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 32px;
+            padding: 40px; backdrop-filter: blur(30px);
+            height: 720px;
+            display: flex; flex-direction: column; text-align: center;
+        }
+
+        /* VINYL & SPINNER */
+        .vinyl-stack { position: relative; width: 220px; height: 220px; margin: 0 auto 25px; cursor: grab; }
+        .vinyl-disk { width: 100%; height: 100%; border-radius: 50%; background: #111; overflow: hidden; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+        .track-art { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; animation: spin 12s linear infinite; animation-play-state: paused; border: 4px solid #111; }
+        .track-art.playing { animation-play-state: running; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* PROFILE & ACTIVITY */
+        .profile-area { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
+        .profile-box { background: rgba(0,0,0,0.03); border-radius: 20px; padding: 20px; text-align: left; }
+        .avatar-wrap { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
+        #d-img { width: 100%; height: 100%; border-radius: 14px; }
+        .status-pill { position: absolute; bottom: -4px; right: -4px; background: #fff; padding: 2px 6px; border-radius: 10px; border: 2px solid #fff; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--offline); }
+
+        /* RIGHT PANEL: SCROLLABLE LIST */
+        .list-wrap { height: 720px; display: flex; flex-direction: column; }
+        .tab-switch { display: flex; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 14px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: none; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; border-radius: 10px; color: var(--muted); }
+        .tab-btn.active { background: #fff; color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        #list-container { flex-grow: 1; overflow-y: auto; padding-right: 10px; display: grid; gap: 12px; align-content: start; }
+        #list-container::-webkit-scrollbar { width: 4px; }
+        #list-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        /* LIST ITEM STYLING */
+        .item-card {
+            display: flex; align-items: center; gap: 15px; padding: 12px 20px;
+            background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+            text-decoration: none; color: inherit;
+        }
+        .item-card:hover { transform: translateX(8px); border-color: var(--accent); background: #fff; }
+        .item-art { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+        .item-info { display: flex; flex-direction: column; overflow: hidden; }
+        .item-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-sub { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* SETTINGS GEAR */
+        .settings-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            width: 42px; height: 42px; border-radius: 14px; border: 1px solid var(--border);
+            background: var(--card); backdrop-filter: blur(20px); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); font-size: 1.2rem;
+        }
+        .settings-btn:hover { color: var(--accent); border-color: var(--accent); }
+        .settings-btn svg { width: 20px; height: 20px; fill: currentColor; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+        .settings-btn:hover svg { transform: rotate(60deg); }
+
+        /* SETTINGS PANEL */
+        .settings-overlay {
+            position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px);
+            opacity: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;
+        }
+        .settings-overlay.open { opacity: 1; pointer-events: all; }
+        .settings-panel {
+            background: var(--card); backdrop-filter: blur(40px); border: 1px solid var(--border);
+            border-radius: 28px; padding: 35px; width: 380px; max-height: 85vh; overflow-y: auto;
+            transform: scale(0.95) translateY(10px); opacity: 0;
+        }
+        .settings-overlay.open .settings-panel { transform: scale(1) translateY(0); opacity: 1; }
+        .settings-panel::-webkit-scrollbar { width: 4px; }
+        .settings-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .settings-header h3 { margin: 0; font-size: 1.1rem; letter-spacing: -0.02em; }
+        .settings-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.3rem; padding: 0; line-height: 1; }
+        .settings-close:hover { color: var(--accent); }
+
+        .setting-group { margin-bottom: 20px; }
+        .setting-group label {
+            display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--muted); font-weight: 600; margin-bottom: 8px;
+        }
+        .setting-group input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px;
+            background: rgba(0,0,0,0.08); outline: none; cursor: pointer;
+        }
+        .setting-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 2px 8px rgba(255,51,51,0.3); cursor: grab;
+        }
+        .slider-row { display: flex; align-items: center; gap: 12px; }
+        .slider-val {
+            font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--accent);
+            min-width: 36px; text-align: right;
+        }
+
+        /* COLOR PREVIEW */
+        .color-preview {
+            width: 100%; height: 72px; border-radius: 16px; margin-bottom: 20px;
+            border: 1px solid var(--border); overflow: hidden; position: relative;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .preview-card-mock {
+            background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 10px; padding: 8px 14px; font-size: 0.65rem;
+            font-family: 'JetBrains Mono'; color: #121212; backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+        .preview-accent-dot {
+            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        }
+
+        .accent-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+        .accent-swatch {
+            width: 32px; height: 32px; border-radius: 10px; border: 2px solid transparent;
+            cursor: pointer; position: relative;
+        }
+        .accent-swatch.active { border-color: var(--text); }
+        .accent-swatch:hover { transform: scale(1.15); }
+        .accent-custom {
+            width: 32px; height: 32px; border-radius: 10px; border: 2px dashed var(--border);
+            cursor: pointer; overflow: hidden; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: var(--muted);
+        }
+        .accent-custom input {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .settings-reset {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 12px;
+            background: none; font-family: inherit; font-size: 0.75rem; font-weight: 600;
+            color: var(--muted); cursor: pointer; margin-top: 5px;
+        }
+        .settings-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── COMPARE TAB ── */
+        .compare-header {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .compare-input {
+            flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 14px;
+            background: var(--card); font-family: 'JetBrains Mono'; font-size: 0.8rem;
+            color: var(--text); outline: none; backdrop-filter: blur(20px);
+        }
+        .compare-input::placeholder { color: var(--muted); }
+        .compare-input:focus { border-color: var(--accent); }
+        .compare-go {
+            padding: 12px 20px; border: none; border-radius: 14px; background: var(--accent);
+            color: #fff; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+            white-space: nowrap;
+        }
+        .compare-go:hover { opacity: 0.85; }
+
+        /* COMPARE CARD GRID */
+        .cmp-users { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .cmp-user-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+            padding: 16px; text-align: center; backdrop-filter: blur(20px);
+        }
+        .cmp-user-card img {
+            width: 48px; height: 48px; border-radius: 14px; margin-bottom: 8px;
+        }
+        .cmp-user-card .cmp-name { font-weight: 600; font-size: 0.9rem; }
+        .cmp-user-card .cmp-sub { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+        .cmp-user-card.owner { border-color: var(--accent); }
+
+        /* STAT BARS */
+        .cmp-stat {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 14px 18px; margin-bottom: 10px; backdrop-filter: blur(20px);
+        }
+        .cmp-stat-label {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--muted); font-weight: 700; margin-bottom: 10px;
+        }
+        .cmp-bar-wrap { display: flex; gap: 4px; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.04); }
+        .cmp-bar-left { height: 100%; border-radius: 4px 0 0 4px; background: var(--accent); transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
+        .cmp-bar-right { height: 100%; border-radius: 0 4px 4px 0; background: var(--text); opacity: 0.25; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
+        .cmp-bar-vals {
+            display: flex; justify-content: space-between; margin-top: 6px;
+            font-family: 'JetBrains Mono'; font-size: 0.7rem; font-weight: 700;
+        }
+        .cmp-bar-vals .left { color: var(--accent); }
+        .cmp-bar-vals .right { opacity: 0.5; }
+
+        /* SHARED ARTISTS */
+        .cmp-shared { margin-top: 6px; }
+        .cmp-shared-title {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--muted); font-weight: 700; margin-bottom: 10px;
+        }
+        .cmp-compat {
+            text-align: center; padding: 18px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 18px; margin-bottom: 12px; backdrop-filter: blur(20px);
+        }
+        .cmp-compat-score {
+            font-family: 'JetBrains Mono'; font-size: 2rem; font-weight: 700; color: var(--accent);
+        }
+        .cmp-compat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px; }
+        .cmp-artist-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; font-size: 0.75rem; font-weight: 500; margin: 3px;
+        }
+        .cmp-artist-pill.shared { border-color: var(--accent); color: var(--accent); }
+
+        /* TOP ARTISTS SIDE BY SIDE */
+        .cmp-tops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .cmp-top-col h4 {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--muted); font-weight: 700; margin: 0 0 8px;
+        }
+        .cmp-top-item {
+            display: flex; align-items: center; gap: 8px; padding: 8px 0;
+            font-size: 0.8rem; border-bottom: 1px solid var(--border);
+        }
+        .cmp-top-item:last-child { border-bottom: none; }
+        .cmp-rank { font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--accent); font-weight: 700; min-width: 18px; }
+        .cmp-top-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+        .cmp-top-plays { font-family: 'JetBrains Mono'; font-size: 0.6rem; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+
+        .cmp-empty {
+            text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.85rem;
+        }
+        .cmp-empty span { display: block; font-size: 0.7rem; margin-top: 6px; opacity: 0.6; }
+    </style>
 </head>
 <body>
 
-    <video autoplay muted loop playsinline webkit-playsinline id="bg-video">
-        <source src="background.mp4" type="video/mp4">
-    </video>
-    <div class="vignette"></div>
+    <!-- SETTINGS GEAR -->
+    <button class="settings-btn" onclick="toggleSettings()">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81a.47.47 0 00-.47-.41h-3.85c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L3.07 9.37a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.47.41h3.85c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z"/></svg>
+    </button>
 
-    <div id="enter-screen">
-        <div class="enter-text">click ^o^</div>
-    </div>
-
-    <main id="main-content">
-        <div class="center-container">
-            
-            <h1 class="main-title">^w^</h1>
-            
-            <p class="subtitle">20(03)</p>
-
-            <div class="minimal-socials">
-                
-                <a href="https://open.spotify.com/user/31u5jdkkvnk22xtz4ufto74shy4a?si=b993b014bf9c4b40" target="_blank" class="icon-wrap spotify">
-                    <i class="fab fa-spotify"></i> 
-                </a>
-                <a href="https://instagram.com/hybridtheeory" target="_blank" class="icon-wrap instagram">
-                    <i class="fab fa-instagram"></i>
-                </a>
-
-                <a href="https://discord.gg/ghostmountain" target="_blank" class="icon-wrap discord">
-                    <i class="fab fa-discord"></i>
-                </a>
-
+    <!-- SETTINGS OVERLAY -->
+    <div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this)toggleSettings()">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h3>Settings</h3>
+                <button class="settings-close" onclick="toggleSettings()">&times;</button>
             </div>
 
+            <div class="color-preview" id="color-preview">
+                <div class="preview-card-mock">sickle4 // studio</div>
+                <div class="preview-accent-dot" id="preview-accent-dot" style="background:var(--accent)"></div>
+            </div>
+
+            <div class="setting-group">
+                <label>Background Color</label>
+                <div class="slider-row" style="gap:10px;">
+                    <input type="color" id="s-bgcol" value="#f8f8f8" oninput="applyColors()"
+                        style="-webkit-appearance:none; width:36px; height:36px; border-radius:10px; border:1px solid var(--border); cursor:pointer; padding:2px; background:none; flex-shrink:0;">
+                    <input type="range" id="s-bright" min="0" max="100" value="97" oninput="applyColors()" style="flex:1;">
+                    <span class="slider-val" id="v-bright">97%</span>
+                </div>
+            </div>
+            <div class="setting-group">
+                <label>Accent Color</label>
+                <div class="accent-picker" id="accent-picker"></div>
+            </div>
+
+            <button class="settings-reset" onclick="resetSettings()">Reset to Default</button>
         </div>
-    </main>
-    <script src="script.js"></script>
+    </div>
+
+    <div class="container">
+        <div class="player-card">
+            <div style="font-size:0.6rem; text-transform:uppercase; letter-spacing:0.4em; color:var(--muted); margin-bottom:25px;">Live Broadcast</div>
+
+            <div class="vinyl-stack" onmousedown="document.getElementById('track-art').style.animationPlayState='paused'" onmouseup="if(activeTrack)document.getElementById('track-art').style.animationPlayState='running'">
+                <div class="vinyl-disk"><img id="track-art" class="track-art" src="" alt=""></div>
+            </div>
+
+            <h2 id="track-name" style="margin:0; font-size:1.5rem; letter-spacing:-0.02em;">Paused</h2>
+            <p id="track-artist" style="color:var(--muted); margin:5px 0 20px;">Standby...</p>
+            <div id="track-timer" style="font-family:'JetBrains Mono'; font-size:0.75rem; color:var(--accent);">00:00 / 00:00</div>
+
+            <div class="profile-area">
+                <div class="profile-box">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
+                        <div class="avatar-wrap">
+                            <img id="d-img" src="" alt="">
+                            <div class="status-pill"><div id="d-dot" class="status-dot"></div></div>
+                        </div>
+                        <div>
+                            <span id="d-name" style="font-weight:600; display:block;">Connecting</span>
+                            <span id="d-user" style="font-size:0.7rem; font-family:'JetBrains Mono'; opacity:0.5;">@offline</span>
+                        </div>
+                    </div>
+                    <div id="badge-dock" style="display:flex; gap:8px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-wrap">
+            <div class="tab-switch">
+                <button class="tab-btn active" onclick="setTab('top', this)">TOP ARTISTS</button>
+                <button class="tab-btn" onclick="setTab('recent', this)">RECENT SCROBBLES</button>
+                <button class="tab-btn" onclick="setTab('compare', this)">COMPARE</button>
+            </div>
+            <div id="list-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const CFG = { discord: "1182402282466332724", lfmKey: "c57d2232297d98921be1fa443d5cb0de", lfmUser: "sickle4" };
+        let activeTrack = null;
+
+        /* ── COLOR SETTINGS ── */
+        const ACCENT_PRESETS = ['#ff3333','#ff6b2b','#f5a623','#43b581','#3b82f6','#8b5cf6','#ec4899','#ef4444','#14b8a6','#f97316'];
+        const DEFAULTS = { bgColor: '#f8f8f8', bright: 97, accent: '#ff3333' };
+
+        function loadSettings() { return { ...DEFAULTS }; }
+        function saveSettings(s) {}
+
+        // Mix a hex color toward white by `bright` (0-100 = full black → full white-ish tint)
+        function mixToWhite(hex, bright) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            // bright=97 → nearly white; bright=40 → quite dark
+            const t = bright / 100;
+            const blend = (c) => Math.round(c + (255 - c) * t);
+            return `rgb(${blend(r)}, ${blend(g)}, ${blend(b)})`;
+        }
+
+        function applyColors() {
+            const hex = document.getElementById('s-bgcol').value;
+            const bright = +document.getElementById('s-bright').value;
+            document.getElementById('v-bright').textContent = bright + '%';
+
+            const bgColor = mixToWhite(hex, bright);
+            document.documentElement.style.setProperty('--bg', bgColor);
+
+            // Update preview
+            document.getElementById('color-preview').style.background = bgColor;
+            document.getElementById('preview-accent-dot').style.background =
+                getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+            saveSettings({ bgColor: hex, bright, accent: loadSettings().accent });
+        }
+
+        function setAccent(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            document.querySelectorAll('.accent-swatch').forEach(sw =>
+                sw.classList.toggle('active', sw.dataset.color === color));
+            document.getElementById('preview-accent-dot').style.background = color;
+            const s = loadSettings(); s.accent = color; saveSettings(s);
+        }
+
+        function buildAccentPicker() {
+            const picker = document.getElementById('accent-picker');
+            const saved = loadSettings();
+            picker.innerHTML = ACCENT_PRESETS.map(c =>
+                `<div class="accent-swatch ${c === saved.accent ? 'active' : ''}" data-color="${c}" style="background:${c}" onclick="setAccent('${c}')"></div>`
+            ).join('') + `<div class="accent-custom" title="Custom color"><input type="color" value="${saved.accent}" oninput="setAccent(this.value)">+</div>`;
+        }
+
+        function resetSettings() {
+            document.getElementById('s-bgcol').value = DEFAULTS.bgColor;
+            document.getElementById('s-bright').value = DEFAULTS.bright;
+            document.documentElement.style.setProperty('--bg', '#f8f8f8');
+            document.getElementById('color-preview').style.background = '#f8f8f8';
+            document.getElementById('v-bright').textContent = DEFAULTS.bright + '%';
+            setAccent(DEFAULTS.accent);
+            saveSettings({ ...DEFAULTS });
+            buildAccentPicker();
+        }
+
+        function toggleSettings() {
+            document.getElementById('settings-overlay').classList.toggle('open');
+        }
+
+        function initSettings() {
+            const s = loadSettings();
+            document.getElementById('s-bgcol').value = s.bgColor;
+            document.getElementById('s-bright').value = s.bright;
+            document.getElementById('v-bright').textContent = s.bright + '%';
+            document.documentElement.style.setProperty('--accent', s.accent);
+            document.documentElement.style.setProperty('--bg', mixToWhite(s.bgColor, s.bright));
+            document.getElementById('color-preview').style.background = mixToWhite(s.bgColor, s.bright);
+            buildAccentPicker();
+        }
+
+        /* ── COMPARE STATS (full overhaul) ── */
+        async function lfmFetch(method, user, extra = '') {
+            const r = await fetch(`https://ws.audioscrobbler.com/2.0/?method=${method}&user=${encodeURIComponent(user)}&api_key=${CFG.lfmKey}&format=json${extra}`);
+            if (!r.ok) throw new Error('not found');
+            return r.json();
+        }
+
+        function showCompareUI() {
+            const cont = document.getElementById('list-container');
+            cont.innerHTML = `
+                <div class="compare-header">
+                    <input class="compare-input" id="compare-user" type="text" value="" placeholder="enter a last.fm username..." onkeydown="if(event.key==='Enter')runCompare()">
+                    <button class="compare-go" onclick="runCompare()">Compare</button>
+                </div>
+                <div id="compare-results">
+                    <div class="cmp-empty">Enter a Last.fm username to compare with ${CFG.lfmUser}<span>See who listens more, shared taste, and compatibility</span></div>
+                </div>`;
+            if (saved) runCompare();
+        }
+
+        async function runCompare() {
+            const input = document.getElementById('compare-user').value.trim();
+            const results = document.getElementById('compare-results');
+            if (!input) return;
+
+            results.innerHTML = `<div style="padding:40px; text-align:center; font-size:0.8rem; color:var(--muted);">Crunching the numbers...</div>`;
+
+            try {
+                const [myInfoR, theirInfoR, myArtistsR, theirArtistsR, myTracksR, theirTracksR] = await Promise.all([
+                    lfmFetch('user.getinfo', CFG.lfmUser),
+                    lfmFetch('user.getinfo', input),
+                    lfmFetch('user.gettopartists', CFG.lfmUser, '&limit=50&period=overall'),
+                    lfmFetch('user.gettopartists', input, '&limit=50&period=overall'),
+                    lfmFetch('user.getrecenttracks', CFG.lfmUser, '&limit=1'),
+                    lfmFetch('user.getrecenttracks', input, '&limit=1'),
+                ]);
+
+                const my = myInfoR.user;
+                const their = theirInfoR.user;
+                const myArtists = myArtistsR.topartists.artist;
+                const theirArtists = theirArtistsR.topartists.artist;
+
+                const myPlays = parseInt(my.playcount);
+                const theirPlays = parseInt(their.playcount);
+                const myArtistCount = parseInt(my.artist_count || 0);
+                const theirArtistCount = parseInt(their.artist_count || 0);
+                const myTrackCount = parseInt(my.track_count || 0);
+                const theirTrackCount = parseInt(their.track_count || 0);
+
+                // Account age in days
+                const myAge = Math.max(1, Math.floor((Date.now() / 1000 - parseInt(my.registered.unixtime)) / 86400));
+                const theirAge = Math.max(1, Math.floor((Date.now() / 1000 - parseInt(their.registered.unixtime)) / 86400));
+                const myDaily = (myPlays / myAge).toFixed(1);
+                const theirDaily = (theirPlays / theirAge).toFixed(1);
+
+                // Compatibility: shared artists in top 50
+                const myTopSet = new Set(myArtists.map(a => a.name.toLowerCase()));
+                const theirTopSet = new Set(theirArtists.map(a => a.name.toLowerCase()));
+                const sharedNames = myArtists.filter(a => theirTopSet.has(a.name.toLowerCase())).map(a => a.name);
+                const compatPct = Math.round((sharedNames.length / Math.max(myArtists.length, theirArtists.length)) * 100);
+
+                // Profile images
+                const myImg = my.image?.find(i => i.size === 'medium')?.['#text'] || '';
+                const theirImg = their.image?.find(i => i.size === 'medium')?.['#text'] || '';
+
+                function statBar(label, lVal, rVal) {
+                    const total = lVal + rVal || 1;
+                    const lPct = (lVal / total * 100).toFixed(1);
+                    const rPct = (rVal / total * 100).toFixed(1);
+                    return `<div class="cmp-stat">
+                        <div class="cmp-stat-label">${label}</div>
+                        <div class="cmp-bar-wrap">
+                            <div class="cmp-bar-left" style="width:${lPct}%"></div>
+                            <div class="cmp-bar-right" style="width:${rPct}%"></div>
+                        </div>
+                        <div class="cmp-bar-vals">
+                            <span class="left">${lVal.toLocaleString()}</span>
+                            <span class="right">${rVal.toLocaleString()}</span>
+                        </div>
+                    </div>`;
+                }
+
+                const compatLabel = compatPct >= 70 ? 'Soulmates' : compatPct >= 45 ? 'Great Match' : compatPct >= 25 ? 'Some Overlap' : compatPct >= 10 ? 'Different Vibes' : 'Polar Opposites';
+
+                results.innerHTML = `
+                    <div class="cmp-users">
+                        <div class="cmp-user-card owner">
+                            ${myImg ? `<img src="${myImg}" alt="">` : ''}
+                            <div class="cmp-name">${CFG.lfmUser}</div>
+                            <div class="cmp-sub">Since ${new Date(my.registered.unixtime * 1000).getFullYear()}</div>
+                        </div>
+                        <div class="cmp-user-card">
+                            ${theirImg ? `<img src="${theirImg}" alt="">` : ''}
+                            <div class="cmp-name">${input}</div>
+                            <div class="cmp-sub">Since ${new Date(their.registered.unixtime * 1000).getFullYear()}</div>
+                        </div>
+                    </div>
+
+                    <div class="cmp-compat">
+                        <div class="cmp-compat-score">${compatPct}%</div>
+                        <div class="cmp-compat-label">${compatLabel}</div>
+                    </div>
+
+                    ${statBar('Total Scrobbles', myPlays, theirPlays)}
+                    ${statBar('Unique Artists', myArtistCount, theirArtistCount)}
+                    ${statBar('Unique Tracks', myTrackCount, theirTrackCount)}
+                    ${statBar('Daily Average', parseFloat(myDaily), parseFloat(theirDaily))}
+
+                    <div class="cmp-shared">
+                        <div class="cmp-shared-title">Shared Artists (${sharedNames.length} of top 50)</div>
+                        <div style="margin-bottom:8px;">
+                            ${sharedNames.length > 0
+                                ? sharedNames.map(n => `<span class="cmp-artist-pill shared">${n}</span>`).join('')
+                                : '<span class="cmp-artist-pill">No shared artists in top 50</span>'}
+                        </div>
+                    </div>
+
+                    <div class="cmp-tops">
+                        <div class="cmp-top-col">
+                            <h4>${CFG.lfmUser}'s Top 10</h4>
+                            ${myArtists.slice(0, 10).map((a, i) => `
+                                <div class="cmp-top-item">
+                                    <span class="cmp-rank">${i + 1}</span>
+                                    <span class="cmp-top-name ${theirTopSet.has(a.name.toLowerCase()) ? '' : ''}" style="${theirTopSet.has(a.name.toLowerCase()) ? 'color:var(--accent)' : ''}">${a.name}</span>
+                                    <span class="cmp-top-plays">${parseInt(a.playcount).toLocaleString()}</span>
+                                </div>`).join('')}
+                        </div>
+                        <div class="cmp-top-col">
+                            <h4>${input}'s Top 10</h4>
+                            ${theirArtists.slice(0, 10).map((a, i) => `
+                                <div class="cmp-top-item">
+                                    <span class="cmp-rank">${i + 1}</span>
+                                    <span class="cmp-top-name" style="${myTopSet.has(a.name.toLowerCase()) ? 'color:var(--accent)' : ''}">${a.name}</span>
+                                    <span class="cmp-top-plays">${parseInt(a.playcount).toLocaleString()}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>`;
+
+            } catch (e) {
+                results.innerHTML = `<div class="cmp-empty" style="color:var(--accent);">User "${input}" not found<span>Check the spelling and try again</span></div>`;
+            }
+        }
+
+        initSettings();
+
+        /* ── TABS ── */
+        async function setTab(type, el) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const cont = document.getElementById('list-container');
+
+            if (type === 'compare') { showCompareUI(); return; }
+
+            cont.innerHTML = `<div style="padding:40px; text-align:center; opacity:0.5; font-size:0.8rem;">Syncing data...</div>`;
+
+            if(type === 'top') {
+                const r = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${CFG.lfmUser}&api_key=${CFG.lfmKey}&limit=20&period=overall&format=json`);
+                const { topartists } = await r.json();
+                cont.innerHTML = topartists.artist.map((a, i) => `
+                    <div class="item-card">
+                        <span style="font-family:'JetBrains Mono'; color:var(--accent); font-weight:700; width:20px;">${(i+1).toString().padStart(2,'0')}</span>
+                        <div class="item-info">
+                            <span class="item-title">${a.name}</span>
+                            <span class="item-sub">${parseInt(a.playcount).toLocaleString()} PLAYS</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                const r = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${CFG.lfmUser}&api_key=${CFG.lfmKey}&limit=20&format=json`);
+                const { recenttracks } = await r.json();
+                cont.innerHTML = recenttracks.track.map(t => `
+                    <div class="item-card">
+                        <img class="item-art" src="${t.image?.[2]?.['#text'] || t.image?.['#text'] || ''}" alt="">
+                        <div class="item-info">
+                            <span class="item-title">${t.name}</span>
+                            <span class="item-sub">${t.artist['#text']}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        /* ── LANYARD ── */
+        async function fetchLanyard() {
+            try {
+                const r = await fetch(`https://api.lanyard.rest/v1/users/${CFG.discord}`);
+                const { data } = await r.json();
+
+                if (data.spotify) {
+                    activeTrack = data.spotify;
+                    document.getElementById('track-name').innerText = data.spotify.song;
+                    document.getElementById('track-artist').innerText = data.spotify.artist;
+                    document.getElementById('track-art').src = data.spotify.album_art_url;
+                    document.getElementById('track-art').classList.add('playing');
+                    document.documentElement.style.setProperty('--aura', `url(${data.spotify.album_art_url})`);
+                } else {
+                    activeTrack = null;
+                    document.getElementById('track-art').classList.remove('playing');
+                }
+
+                document.getElementById('d-name').innerText = data.discord_user.global_name;
+                document.getElementById('d-user').innerText = `@${data.discord_user.username}`;
+                document.getElementById('d-img').src = `https://cdn.discordapp.com/avatars/${data.discord_user.id}/${data.discord_user.avatar}.png`;
+                document.getElementById('d-dot').style.background = `var(--${data.discord_status})`;
+            } catch (e) {}
+        }
+
+        setInterval(() => {
+            if (activeTrack) {
+                const elapsed = Date.now() - activeTrack.timestamps.start;
+                const total = activeTrack.timestamps.end - activeTrack.timestamps.start;
+                const f = (ms) => `${Math.floor(ms/60000)}:${(Math.floor(ms/1000)%60).toString().padStart(2,'0')}`;
+                document.getElementById('track-timer').innerText = `${f(Math.max(0, elapsed))} / ${f(total)}`;
+            }
+        }, 1000);
+
+        fetchLanyard(); setTab('top', document.querySelector('.tab-btn'));
+        setInterval(fetchLanyard, 10000);
+    </script>
 </body>
 </html>
-
-
